@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+{% if form.errors or form.non_field_errors %}
+<!-- error -->
+{% endif %}
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Sign Up</button>
+  </form>
+{% endblock %}
