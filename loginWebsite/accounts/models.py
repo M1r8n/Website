@@ -1,7 +1,15 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser,BaseUserManager
-from django.contrib.auth.hashers import make_password
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from django.template import loader
+from sendgrid import Content
+
+from .settings import SENDGRID_API_KEY
+from django.utils.http import urlsafe_base64_encode
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail,HtmlContent,From,To,PlainTextContent,Email
 import argon2
 
 class Groups(models.Model):
@@ -47,6 +55,21 @@ class Users(AbstractUser):
         except argon2.exceptions.VerificationError:
             return False
         return False
+
+    def resetpassword(self, request):
+        uid = urlsafe_base64_encode(force_bytes(self.pk))  # .decode('utf-8')
+        token = default_token_generator.make_token(self)
+        domain = "127.0.0.1:8000"
+        to_email = To(self.email)
+        from_email = Email("psiproject@o2.pl")
+        subject = "Password Recovery from website"
+        content = Content("text/plain", f"You are receiving this email because of your reset password request.\n"
+                                        f"Please go to this page and choose a new password:\n"
+                                        f"http://{domain}/accounts/reset_password_confirm/{uid}/{token}")
+        print(content.get())
+        message = Mail(from_email, to_email, subject, content)
+        sg = SendGridAPIClient(api_key=SENDGRID_API_KEY)
+        sg.client.mail.send.post(request_body=message.get())
 
 class Activity(models.Model):
     activityName=models.CharField(max_length=50)

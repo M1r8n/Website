@@ -87,3 +87,21 @@ class PasswordResetForm(Form):
         if not re.fullmatch(pat, cleaned_data["email"]):
             raise ValidationError("Incorect email form.")
         return cleaned_data
+
+class PasswordResetForm2(Form):
+    password = CharField(widget=PasswordInput,label='password')
+    password2 = CharField(widget=PasswordInput, label='password2')
+    class Meta:
+        model=Users
+        fields=['password','password2']
+
+    def clean(self):
+        super(PasswordResetForm2,self).clean()
+        psw1 = self.cleaned_data.get("password")
+        psw2 = self.cleaned_data.get("password2")
+        pat = re.compile(r'[A-Za-z0-9@#$%^&+=]{8,}')
+        if not re.fullmatch(pat, psw1):
+            raise ValidationError("Password needs at least 8 sings")
+        if psw1 != psw2:
+            raise ValidationError("Passwords are different.")
+        return self.cleaned_data
