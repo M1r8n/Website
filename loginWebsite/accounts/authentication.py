@@ -5,7 +5,6 @@ from django.core.exceptions import PermissionDenied
 class UserAuthBackend(BaseBackend):
     def authenticate(self,request, username=None,password=None, **kwargs):
         try:
-
             user = Users.objects.get(username=username)
             if user.check_password(password):
                 return user
