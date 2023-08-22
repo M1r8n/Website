@@ -6,7 +6,8 @@ def index(request):
         return redirect("userpage")
     return render(request,'index.html')
 
-#TODO dodanie wyswietlania tabeli logow uzytkownika
+#TODO dodanie wyswietlania tabeli logow uzytkownika,
+#TODO dodanie przypomnienia zmiany hasła
 @login_required(login_url='login')
 def userpage(request):
     return render(request,'userpage.html')

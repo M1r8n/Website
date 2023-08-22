@@ -4,7 +4,6 @@ from .models import Users, PasswordArchive
 from django.forms import ModelForm, CharField, PasswordInput, ValidationError, Form
 import re
 import argon2
-
 class UserForm(ModelForm):
     password2=CharField(widget=PasswordInput)
     class Meta:
@@ -73,8 +72,6 @@ class LoginForm(Form):
             user = Users.objects.get(username=log)
         except Users.DoesNotExist:
             raise ValidationError("User doesn't exist.")
-        if not user.check_password(psw):
-            raise ValidationError("Wrong password.")
         return cleaned_data
 
 

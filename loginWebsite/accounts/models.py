@@ -20,6 +20,7 @@ class UserMenager(BaseUserManager):
 
         user.set_password(password)
         user.save(using=self._db)
+        user.counter=0
         return user
 
     def create_superuser(self, password):
@@ -36,6 +37,7 @@ class Users(AbstractUser):
     username=models.CharField(max_length=30, unique=True)
     email = models.CharField(max_length=100, unique=True)
     group=models.ForeignKey(Groups,null=True, on_delete=models.SET_NULL)
+    counter=models.IntegerField(default=0)
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = ['email']
@@ -78,6 +80,7 @@ class BlockedUser(models.Model):
     user=models.ForeignKey(Users,on_delete=models.CASCADE)
     time=models.DateTimeField(default=timezone.now)
 
+    objects=models.Manager()
 
 class UserIP(models.Model):
     user=models.ForeignKey(Users,on_delete=models.CASCADE)
