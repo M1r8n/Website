@@ -1,15 +1,14 @@
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import AbstractUser,BaseUserManager
+from django.contrib.auth.models import AbstractUser,BaseUserManager,EmptyManager
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
-from django.template import loader
 from sendgrid import Content
 
 from .settings import SENDGRID_API_KEY
 from django.utils.http import urlsafe_base64_encode
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail,HtmlContent,From,To,PlainTextContent,Email
+from sendgrid.helpers.mail import Mail,To,Email
 import argon2
 
 class Groups(models.Model):
@@ -73,25 +72,30 @@ class Users(AbstractUser):
 
 class Activity(models.Model):
     activityName=models.CharField(max_length=50)
-
+    objects=models.Manager()
 
 class BlockedUser(models.Model):
     user=models.ForeignKey(Users,on_delete=models.CASCADE)
     time=models.DateTimeField(default=timezone.now)
 
+
 class UserIP(models.Model):
     user=models.ForeignKey(Users,on_delete=models.CASCADE)
     addresIP=models.CharField(max_length=16)
 
-
+#TODO add back addresIP to logs
 class Logs(models.Model):
     user=models.ForeignKey(Users,on_delete=models.CASCADE)
     time=models.DateTimeField(default=timezone.now)
     acivity=models.ForeignKey(Activity,on_delete=models.PROTECT)
-    addresIP=models.ForeignKey(UserIP,on_delete=models.PROTECT)
+    #addresIP=models.ForeignKey(UserIP,on_delete=models.PROTECT)
 
+    objects=models.Manager()
 
 class PasswordArchive(models.Model):
     user=models.ForeignKey(Users,on_delete=models.CASCADE)
     password = models.CharField(max_length=300)
     date = models.DateTimeField(default=timezone.now)
+    USERNAME_FIELD='user'
+    objects = models.Manager()
+
