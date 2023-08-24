@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 
 
 def index(request):
+    #TODO sprawdzenie adresu ip do polaczenia sie if request.ip ==??
     if request.user.is_authenticated:
         return redirect("userpage")
     return render(request,'index.html')

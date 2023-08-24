@@ -87,7 +87,6 @@ class UserIP(models.Model):
     user=models.ForeignKey(Users,on_delete=models.CASCADE)
     addresIP=models.CharField(max_length=16)
 
-#TODO add back addresIP to logs
 class Logs(models.Model):
     user=models.ForeignKey(Users,on_delete=models.CASCADE, related_name='logs')
     time=models.DateTimeField(default=timezone.now)
