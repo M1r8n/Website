@@ -8,5 +8,6 @@ urlpatterns = [
     path('resetpassword/',resetpassword,name="resetpsw"),
     path('resetsent/',resetsent,name='resetsent'),
     re_path(r'^reset_password_confirm/(?P<uidb64>[0-9A-Za-z]+)/(?P<token>.+)',passwordconfirm, name='passwordconfirm'),
+    path('reset_password_confirm/',passwordconfirm,name='asd'),
     path('resetfail/',resetfailure,name='resetsentfailure')
 ]

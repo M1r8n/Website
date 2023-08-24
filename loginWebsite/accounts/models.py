@@ -42,6 +42,7 @@ class Users(AbstractUser):
     EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = ['email']
     is_active = models.BooleanField(default=True)
+    password_change_date=models.DateTimeField(default=timezone.now)
 
     objects = UserMenager()
 
@@ -88,9 +89,9 @@ class UserIP(models.Model):
 
 #TODO add back addresIP to logs
 class Logs(models.Model):
-    user=models.ForeignKey(Users,on_delete=models.CASCADE)
+    user=models.ForeignKey(Users,on_delete=models.CASCADE, related_name='logs')
     time=models.DateTimeField(default=timezone.now)
-    acivity=models.ForeignKey(Activity,on_delete=models.PROTECT)
+    acivity=models.ForeignKey(Activity,on_delete=models.PROTECT, related_name="activty_lookup")
     #addresIP=models.ForeignKey(UserIP,on_delete=models.PROTECT)
 
     objects=models.Manager()

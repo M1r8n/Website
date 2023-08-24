@@ -1,7 +1,22 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
 <h1>Logged in page</h1>
 <a href="{% url 'resetpsw' %}"><Button>Reset Password</Button></a>
 <a href="{% url 'logout' %}"><Button>Log out</Button></a>
+
+<div class="content">
+    {% for log in user.logs.all %}
+          <li>({{ log.time }}) - {{ log.acivity.activityName }}</li>
+    {% endfor %}
+</div>
 {% endblock %}

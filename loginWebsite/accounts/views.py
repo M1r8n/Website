@@ -48,14 +48,21 @@ def userlogin(request):
                     return render(request,'login.html', context)
                 else:
                     blockedUser.delete()
-            user = authenticate(request,username=form.cleaned_data["username"], password=form.cleaned_data["password"])
+            if user.password_change_date<timezone.now():
+                    messages.error(request,"Password expired use forgot password to reset password")
+                    return render(request,'login.html', context)
+            user : Users = authenticate(request,username=form.cleaned_data["username"], password=form.cleaned_data["password"])
             if user is not None:
                 user.counter = 0
                 user.save()
                 login(request, user)
                 log = Logs(acivity=Activity.objects.get(activityName="userloggedin"),user=user)
                 log.save()
+                if user.password_change_date-timedelta(days=5)<timezone.now():
+                    wynik=user.password_change_date-timezone.now()
+                    messages.error(request,f"Zresetuj swoje hasło, bedzie wazne jeszcze przez {wynik.days} dni {wynik.seconds//3600} godziny")
                 #if data hasła przeterminowana to przekeruj do re
+                querry = Activity.objects.all()
                 return redirect('userpage')
             else:
                 try:
@@ -88,6 +95,8 @@ def resetsent(request):
 def resetfailure(request):
     return render(request,'resetsendfail.html',{})
 def resetpassword(request):
+    if request.user.is_authenticated:
+        return redirect('asd')
     if request.method == "POST":
         form=PasswordResetForm(request.POST)
         if form.is_valid():
@@ -106,30 +115,33 @@ def resetpassword(request):
 #TODO zablokowanie cofania z linku
 def passwordconfirm(request,uidb64=None,token=None,*args, **kwargs):
     if request.user.is_authenticated:
-
-        return redirect('login')
+        user=request.user
+        tokenFlag=True
     else:
-        if request.method=='POST':
-            try:
-                uid = urlsafe_base64_decode(uidb64)
-                user = Users.objects.get(pk=uid)
-            except (TypeError, ValueError, OverflowError, Users.DoesNotExist):
-                user = None
-            form=PasswordResetForm2(request.POST)
-            form2=UserPasswordHistory(user,request.POST)
-            try:
-                if form.is_valid() and form2.is_valid():
-                    if user is not None and default_token_generator.check_token(user, token):
-                            user.set_password(form.cleaned_data['password'])
-                            user.save()
-                            log = Logs(acivity=Activity.objects.get(activityName="userpasswordreset"), user=user)
-                            log.save()
-                            messages.success(request, 'Your password has been modified')
-                            return redirect('login')
-                    else:
-                        messages.error(request, 'Your password has not been modified, token expired')
-            except PasswordAlreadyUsedError:
-                messages.error(request, 'Your password has already been used')
-        return render(request,'passwordresetconfirm.html', {'form': PasswordResetForm2(), 'validlink': True})
+        try:
+            uid = urlsafe_base64_decode(uidb64)
+            user = Users.objects.get(pk=uid)
+            tokenFlag=default_token_generator.check_token(user, token)
+        except (TypeError, ValueError, OverflowError, Users.DoesNotExist):
+            user = None
+            tokenFlag=None
 
-#TODO reset hasła po okreslonym czasie
+    if request.method=='POST':
+        form=PasswordResetForm2(request.POST)
+        form2=UserPasswordHistory(user,request.POST)
+        try:
+            if form.is_valid() and form2.is_valid():
+                if user is not None and tokenFlag:
+                        user.set_password(form.cleaned_data['password'])
+                        user.password_change_date=timezone.now()+timedelta(days=30)
+                        user.save()
+                        log = Logs(acivity=Activity.objects.get(activityName="userpasswordreset"), user=user)
+                        log.save()
+                        messages.success(request, 'Your password has been modified')
+                        return redirect('login')
+                else:
+                    if tokenFlag is not None:
+                        messages.error(request, 'Your password has not been modified, token expired')
+        except PasswordAlreadyUsedError:
+            messages.error(request, 'Your password has already been used')
+    return render(request,'passwordresetconfirm.html', {'form': PasswordResetForm2(), 'validlink': True})
